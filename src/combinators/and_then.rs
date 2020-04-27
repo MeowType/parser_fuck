@@ -1,3 +1,4 @@
+use crate::common::cell::*;
 use crate::*;
 use std::marker::PhantomData;
 
@@ -39,7 +40,7 @@ where
 #[cfg(test)]
 mod tests {
     use crate::*;
-    
+
     #[test]
     fn test() {
         let code = "asd123";

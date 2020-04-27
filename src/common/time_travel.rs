@@ -18,14 +18,18 @@ pub trait TimeTravel: Iterator + RefClone {
 }
 
 pub trait ComString {
-    fn com_string(&self, range: Range<usize>) -> Option<String>;
+    type ComStringData;
+
+    fn com_string(&self, data: Self::ComStringData) -> Option<String>;
 }
 pub trait GetString {
     fn get_string(&self) -> String;
 }
 
 pub trait ComChar {
-    fn com_char(&self, range: Range<usize>) -> Option<char>;
+    type ComCharData;
+
+    fn com_char(&self, data: Self::ComCharData) -> Option<char>;
 }
 pub trait GetChar {
     fn get_char(&self) -> char;

@@ -1,6 +1,5 @@
 use std::fmt;
 use std::fmt::Display;
-use std::ops::Range;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
 pub struct Loc {
@@ -111,10 +110,14 @@ pub const fn loc_range_of(from: Loc, to: Loc) -> LocRange {
 //\/////////////////////////////////////////////////////////////////////////////////////////////////
 
 pub trait ComLoc {
-    fn loc(&self, index: usize) -> Option<Loc>;
+    type ComLocData;
+
+    fn loc(&self, data: Self::ComLocData) -> Option<Loc>;
 }
 pub trait ComLocRange {
-    fn loc_range(&self, range: Range<usize>) -> Option<LocRange>;
+    type ComLocRangeData;
+
+    fn loc_range(&self, data: Self::ComLocRangeData) -> Option<LocRange>;
 }
 
 pub trait GetLoc {

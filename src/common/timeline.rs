@@ -1,4 +1,4 @@
-use super::super::common::{ExtRefCell, ExtRefCellExt};
+use crate::common::cell::*;
 use std::cmp::{Eq, PartialEq};
 use std::convert::From;
 use std::default::Default;

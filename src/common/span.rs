@@ -1,3 +1,4 @@
+use super::cell::*;
 use super::*;
 use std::ops::Range;
 use std::rc::Rc;
@@ -125,6 +126,8 @@ impl<I: Iterator> ComString for Span<I>
 where
     I::Item: GetString,
 {
+    type ComStringData = Range<usize>;
+
     fn com_string(&self, range: Range<usize>) -> Option<String> {
         let this = self.inner.get();
         let Range { start: _, end } = range;
@@ -142,6 +145,8 @@ impl<I: Iterator> ComLoc for Span<I>
 where
     I::Item: GetLoc,
 {
+    type ComLocData = usize;
+
     fn loc(&self, index: usize) -> Option<Loc> {
         let this = unsafe { (*self.inner).get_mut() };
         let c = this.timeline.get(index)?;
@@ -153,6 +158,8 @@ impl<I: Iterator> ComLocRange for Span<I>
 where
     I::Item: GetLoc + Clone,
 {
+    type ComLocRangeData = Range<usize>;
+
     fn loc_range(&self, range: Range<usize>) -> Option<LocRange> {
         let this = unsafe { (*self.inner).get_mut() };
         let Range { start, end } = range;
