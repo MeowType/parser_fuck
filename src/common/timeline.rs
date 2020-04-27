@@ -1,4 +1,5 @@
 use crate::common::cell::*;
+use crate::common::*;
 use std::cmp::{Eq, PartialEq};
 use std::convert::From;
 use std::default::Default;
@@ -53,6 +54,8 @@ impl<I: Iterator> Debug for TimelineBox<I> {
 
 //\/////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// Collection of storage history  
+/// Wrap an iterator
 pub struct Timeline<I: Iterator> {
     inner: Rc<ExtRefCell<TimelineBox<I>>>,
 }
@@ -67,6 +70,7 @@ impl<I: Iterator> Timeline<I> {
     pub fn iter(&self) -> TimelineIter<'_, I> {
         TimelineIter::new(self.clone())
     }
+    /// Number of history records currently stored
     #[inline]
     pub fn now_len(&self) -> usize {
         self.inner.buf.len()
@@ -85,12 +89,17 @@ impl<I: Iterator> Timeline<I> {
         }
         self.inner.buf.get(self.inner.buf.len() - 1)
     }
+    /// Iterate internal iterator to completion
     pub fn to_end(&mut self) {
         while let Some(_) = self.next() {}
     }
+    /// Check if the internal iterator has been completed
     pub fn is_end(&self) -> bool {
         self.inner.end
     }
+    /// Get the value of the specified position  
+    /// - None if the internal iterator is completed but not found  
+    /// - None if index is less than 0  
     pub fn get(&mut self, index: usize) -> Option<&I::Item> {
         unsafe { self.unsafe_get(index) }
     }
@@ -147,6 +156,12 @@ impl<I: Iterator> Clone for Timeline<I> {
         self.inner.clone().into()
     }
 }
+impl<I: Iterator> RefClone for Timeline<I> {
+    #[inline]
+    fn ref_clone(&self) -> Self {
+        self.clone()
+    }
+}
 impl<I: Iterator> PartialEq for Timeline<I> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -192,6 +207,7 @@ impl<I: Iterator> Index<usize> for Timeline<I> {
 
 //\/////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// TimeLine's Iter
 pub struct TimelineIter<'a, I: Iterator> {
     timeline: Timeline<I>,
     _a: PhantomData<&'a I::Item>,

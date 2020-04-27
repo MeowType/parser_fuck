@@ -4,11 +4,14 @@ pub mod common;
 pub use combinators::*;
 pub use common::*;
 
+/// Abstract Parser with chain call
 pub trait Parser<I: TimeTravel> {
     type Output;
 
+    /// do parse
     fn parse(&self, input: I) -> Option<Self::Output>;
 
+    /// Map a `Parser<Output = T>` to `Parser<Output = U>` by applying a function to a contained value
     #[inline]
     fn map<U, F>(self, f: F) -> Map<Self, I, F>
     where
@@ -18,6 +21,7 @@ pub trait Parser<I: TimeTravel> {
         Map::new(self, f)
     }
 
+    /// Only pass if both subparsers pass
     #[inline]
     fn and<B>(self, b: B) -> And<Self, B, I>
     where
@@ -27,6 +31,7 @@ pub trait Parser<I: TimeTravel> {
         And::new(self, b)
     }
 
+    /// Pass when any subparser passes
     #[inline]
     fn or<B>(self, b: B) -> Or<Self, B, I>
     where
@@ -36,6 +41,7 @@ pub trait Parser<I: TimeTravel> {
         Or::new(self, b)
     }
 
+    /// Pass if the subparser fail
     #[inline]
     fn not(self) -> Not<Self, I>
     where
@@ -44,7 +50,7 @@ pub trait Parser<I: TimeTravel> {
         Not::new(self)
     }
 
-    /// *, >= 0
+    /// `*, >= 0`
     #[inline]
     fn many(self) -> Many<Self, I>
     where
@@ -53,7 +59,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, 0, None)
     }
 
-    /// +, >= 1
+    /// `+, >= 1`
     #[inline]
     fn many1(self) -> Many<Self, I>
     where
@@ -62,7 +68,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, 1, None)
     }
 
-    /// {n,}, >= n
+    /// `{n,}, >= n`
     #[inline]
     fn many_min(self, min: usize) -> Many<Self, I>
     where
@@ -71,7 +77,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, min, None)
     }
 
-    /// {,m}, <= m
+    /// `{,m}, <= m`
     #[inline]
     fn many_max(self, max: usize) -> Many<Self, I>
     where
@@ -80,7 +86,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, 0, Some(max))
     }
 
-    /// {1,m}, >= 1 && <= m
+    /// `{1,m}, >= 1 && <= m`
     #[inline]
     fn many1_max(self, max: usize) -> Many<Self, I>
     where
@@ -89,7 +95,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, 1, Some(max))
     }
 
-    /// {n,m}, >= n && <= m
+    /// `{n,m}, >= n && <= m`
     #[inline]
     fn many_min_max(self, min: usize, max: usize) -> Many<Self, I>
     where
@@ -98,7 +104,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, min, Some(max))
     }
 
-    /// {n}, == n
+    /// `{n}, == n`
     #[inline]
     fn some(self, count: usize) -> Many<Self, I>
     where
@@ -107,7 +113,7 @@ pub trait Parser<I: TimeTravel> {
         Many::new(self, count, Some(count))
     }
 
-    /// ?, 0 or 1
+    /// `?, 0 or 1`
     #[inline]
     fn may(self) -> May<Self, I>
     where
@@ -116,6 +122,7 @@ pub trait Parser<I: TimeTravel> {
         May::new(self)
     }
 
+    /// Continuously parse into iterators
     #[inline]
     fn iter(self) -> Iter<Self, I>
     where
@@ -124,6 +131,7 @@ pub trait Parser<I: TimeTravel> {
         Iter::new(self)
     }
 
+    /// Fail if the subparser fail, otherwise calls f with the new Parser and parse the Parser
     #[inline]
     fn and_then<U, F>(self, f: F) -> AndThen<Self, I, F>
     where
@@ -134,6 +142,7 @@ pub trait Parser<I: TimeTravel> {
         AndThen::new(self, f)
     }
 
+    /// Pass if subparser pass, otherwise calls f and parse the result Parser
     #[inline]
     fn or_else<U, F>(self, f: F) -> OrElse<Self, I, F>
     where
@@ -144,6 +153,7 @@ pub trait Parser<I: TimeTravel> {
         OrElse::new(self, f)
     }
 
+    /// Wrap to dynamic
     #[inline]
     fn dyns(self) -> Dyn<I, Self::Output>
     where

@@ -42,6 +42,8 @@ impl<I: Iterator> Clone for SpanData<I> {
     }
 }
 
+/// A time-travelable collection  
+/// See [TimeTravel](trait.TimeTravel.html)
 #[derive(Debug, PartialEq, Eq)]
 pub struct Span<I: Iterator> {
     inner: Rc<ExtRefCell<SpanData<I>>>,
@@ -176,6 +178,8 @@ where
     }
 }
 
+
+/// Into Span
 pub trait SpanOf {
     type SpanOfTarget;
     fn span(self) -> Self::SpanOfTarget;

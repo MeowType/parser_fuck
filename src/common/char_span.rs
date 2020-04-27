@@ -1,6 +1,7 @@
 use crate::*;
 use std::str::Chars;
 
+/// A of kind Span, wrap [Char](struct.Char.html)
 pub type CharSpan<'a> = Span<CharChars<Chars<'a>>>;
 
 impl<'a> SpanOf for CharChars<Chars<'a>> {
