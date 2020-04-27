@@ -3,6 +3,12 @@ name = "parser_fuck"
 version = "0.0.0"
 authors = ["Package <Aditrc@outlook.com>"]
 edition = "2018"
+description = "A simple parser combinator library"
+readme = "README.md"
+repository = "https://github.com/MeowType/parser_fuck"
+license = "MIT"
+keywords = ["parser-combinator", "parser", "combinator", "parsing", "parser"]
+categories = ["parsing"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
