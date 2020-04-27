@@ -2,6 +2,15 @@ use crate::*;
 use batch_oper::*;
 use std::ops::Range;
 
+/// Match subpart
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd123".span();
+/// let x = sub("asd".chars());
+/// let r = x.parse(code);
+/// assert_eq!(r, Some(0..3))
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Sub<T> {
     sub: Vec<T>,
@@ -67,11 +76,29 @@ where
     }
 }
 
+/// Match subpart
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd123".span();
+/// let x = sub("asd".chars());
+/// let r = x.parse(code);
+/// assert_eq!(r, Some(0..3))
+/// ```
 #[inline]
 pub fn sub<T, I: IntoIterator<Item = T>>(c: I) -> Sub<T> {
     Sub::from(c)
 }
 
+/// Match substring
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd123".span();
+/// let x = substr("asd");
+/// let r = x.parse(code);
+/// assert_eq!(r, Some(0..3))
+/// ```
 #[inline]
 pub fn substr(c: &str) -> Sub<char> {
     Sub::from(c.chars())

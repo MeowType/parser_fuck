@@ -1,6 +1,7 @@
 use crate::*;
 use std::marker::PhantomData;
 
+/// Multiple parsing
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Many<A, I = ()> {
     a: A,

@@ -3,6 +3,15 @@ use crate::*;
 use std::marker::PhantomData;
 use std::ops::Range;
 
+/// Check whether it is satisfied
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd123".span();
+/// let x = satisfy(|c: Char| c == 'a');
+/// let r = x.parse(code);
+/// assert_eq!(r, Some(0..1))
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Satisfy<F, I = ()> {
     f: ExtRefCell<F>,
@@ -42,6 +51,15 @@ where
     }
 }
 
+/// Check whether it is satisfied
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd123".span();
+/// let x = satisfy(|c: Char| c == 'a');
+/// let r = x.parse(code);
+/// assert_eq!(r, Some(0..1))
+/// ```
 #[inline]
 pub fn satisfy<I, F>(f: F) -> Satisfy<F, I>
 where

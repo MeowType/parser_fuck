@@ -1,6 +1,7 @@
 use crate::*;
 use std::marker::PhantomData;
 
+/// Pass if the subparser fail
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Not<A, I = ()> {
     a: A,

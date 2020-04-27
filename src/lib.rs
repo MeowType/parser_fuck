@@ -183,6 +183,8 @@ macro_rules! _def_parser_I_select {
  { $id:ident } => { $id };
 }
 
+/// ***Unfinished***  
+/// Define a Parser with data like a function  
 #[macro_export(local_inner_macros)]
 macro_rules! def_parser {
     { } => { };

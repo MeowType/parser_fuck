@@ -1,6 +1,7 @@
 use crate::*;
 use std::marker::PhantomData;
 
+/// Only pass if both subparsers pass
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct And<A, B, I = ()> {
     a: A,

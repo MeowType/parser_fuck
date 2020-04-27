@@ -1,6 +1,7 @@
 use crate::*;
 use std::marker::PhantomData;
 
+/// Pass when any subparser passes
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Or<A, B, I = ()> {
     a: A,

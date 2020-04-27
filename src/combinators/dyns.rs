@@ -3,6 +3,7 @@ use std::fmt;
 use std::fmt::Debug;
 use std::sync::Arc;
 
+/// Wrap to dynamic
 #[derive(Clone)]
 pub struct Dyn<I: TimeTravel, O = ()> {
     base: Arc<dyn Parser<I, Output = O>>,

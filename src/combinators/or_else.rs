@@ -2,6 +2,7 @@ use crate::common::cell::*;
 use crate::*;
 use std::marker::PhantomData;
 
+/// Pass if subparser pass, otherwise calls f and parse the result Parser
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct OrElse<B: Parser<I>, I: TimeTravel, F> {
     base: B,

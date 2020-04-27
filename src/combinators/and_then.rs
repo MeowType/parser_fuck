@@ -2,6 +2,7 @@ use crate::common::cell::*;
 use crate::*;
 use std::marker::PhantomData;
 
+/// Fail if the subparser fail, otherwise calls f with the new Parser and parse the Parser
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AndThen<B: Parser<I>, I: TimeTravel, F> {
     base: B,

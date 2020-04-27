@@ -1,6 +1,7 @@
 use crate::*;
 use std::marker::PhantomData;
 
+/// Parse 1 or 0 times
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct May<A, I = ()> {
     a: A,

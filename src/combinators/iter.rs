@@ -1,6 +1,7 @@
 use crate::*;
 use std::marker::PhantomData;
 
+/// Continuously parse into iterators
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Iter<A, I = ()> {
     a: A,

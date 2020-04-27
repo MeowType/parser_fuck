@@ -1,6 +1,15 @@
 use crate::*;
 use std::ops::Range;
 
+/// Match an item
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd".span();
+/// let a = one('a');
+/// let r = a.parse(code);
+/// assert_eq!(r, Some(0..1))
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct One<T> {
     val: T,
@@ -29,6 +38,15 @@ where
     }
 }
 
+/// Match an item
+/// ## example
+/// ```
+/// # use parser_fuck::*;
+/// let code = "asd".span();
+/// let a = one('a');
+/// let r = a.parse(code);
+/// assert_eq!(r, Some(0..1))
+/// ```
 #[inline]
 pub const fn one<T>(val: T) -> One<T> {
     One::new(val)

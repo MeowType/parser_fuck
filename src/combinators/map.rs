@@ -2,6 +2,7 @@ use crate::common::cell::*;
 use crate::*;
 use std::marker::PhantomData;
 
+/// Map a `Parser<Output = T>` to `Parser<Output = U>` by applying a function to a contained value
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Map<B: Parser<I>, I: TimeTravel, F> {
     base: B,
