@@ -118,6 +118,8 @@ where
         this.index = index;
         this.ready = true;
     }
+}
+impl<I: Iterator> SyncTo for Span<I> {
     fn sync_to(&self, other: &mut Self) {
         other.inner = self.inner.clone();
     }

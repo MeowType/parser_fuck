@@ -1,13 +1,20 @@
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fmt::Display;
+use std::ops::{Range, RangeTo};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
+/// Location in source code
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Loc {
+    /// nth of characters
     pub offset: usize,
+    /// nth of line
     pub line: usize,
+    /// nth of characters in current line
     pub char: usize,
 }
 impl Loc {
+    /// New empty
     #[inline]
     pub const fn new() -> Self {
         Self {
@@ -16,6 +23,7 @@ impl Loc {
             char: 0,
         }
     }
+    /// New at
     #[inline]
     pub const fn new_at(offset: usize, line: usize, char: usize) -> Self {
         Self { offset, line, char }
@@ -45,22 +53,28 @@ impl From<()> for Loc {
     }
 }
 
+/// Shorthand for Loc::new_at
 pub const fn loc_of(offset: usize, line: usize, char: usize) -> Loc {
     Loc::new_at(offset, line, char)
 }
 
 //\/////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord)]
+/// Range of Location in source code
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct LocRange {
+    /// from
     pub from: Loc,
+    /// to
     pub to: Loc,
 }
 impl LocRange {
+    /// New at
     #[inline]
     pub const fn new(from: Loc, to: Loc) -> Self {
         Self { from, to }
     }
+    /// New empty
     #[inline]
     pub const fn new_empty() -> Self {
         Self {
@@ -101,7 +115,26 @@ impl From<()> for LocRange {
         Self::new_empty()
     }
 }
+impl From<Range<Loc>> for LocRange {
+    #[inline]
+    fn from(r: Range<Loc>) -> Self {
+        Self::new(r.start, r.end)
+    }
+}
+impl From<RangeTo<Loc>> for LocRange {
+    #[inline]
+    fn from(r: RangeTo<Loc>) -> Self {
+        Self::new(Loc::new(), r.end)
+    }
+}
+impl From<(Loc, Loc)> for LocRange {
+    #[inline]
+    fn from((from, to): (Loc, Loc)) -> Self {
+        Self::new(from, to)
+    }
+}
 
+/// Shorthand for LocRange::new
 #[inline]
 pub const fn loc_range_of(from: Loc, to: Loc) -> LocRange {
     LocRange::new(from, to)
@@ -109,20 +142,28 @@ pub const fn loc_range_of(from: Loc, to: Loc) -> LocRange {
 
 //\/////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// Calculate Loc
 pub trait ComLoc {
     type ComLocData;
 
+    /// Calculate Loc
     fn loc(&self, data: Self::ComLocData) -> Option<Loc>;
 }
+/// Calculate LocRange
 pub trait ComLocRange {
     type ComLocRangeData;
 
+    /// Calculate ComLocRange
     fn loc_range(&self, data: Self::ComLocRangeData) -> Option<LocRange>;
 }
 
+/// Get Loc
 pub trait GetLoc {
+    /// Get Loc
     fn loc(&self) -> Loc;
 }
+/// Get LocRange
 pub trait GetLocRange {
+    /// Get LocRange
     fn loc_range(&self) -> LocRange;
 }

@@ -1,16 +1,22 @@
 use super::*;
 use batch_oper::effect;
+use serde::{Deserialize, Serialize};
 use std::convert::From;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::string::ToString;
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord)]
+/// Characters and newlines with location
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Ord, Deserialize, Serialize)]
 pub enum Char {
+    /// char and Loc
     Char(char, Loc),
+    /// wrap `'\n'` | `'\r'` | `"\r\n"` and Loc
     Wrap(Loc),
 }
 impl Char {
+    /// map char  
+    /// None if it‘s not `Char`
     #[inline]
     pub fn char<R>(&self, mut f: impl FnMut(char, Loc) -> R) -> Option<R> {
         match self {
@@ -18,6 +24,8 @@ impl Char {
             _ => None,
         }
     }
+    /// map wrap  
+    /// None if it’s not `Wrap`
     #[inline]
     pub fn wrap<R>(&self, mut f: impl FnMut(Loc) -> R) -> Option<R> {
         match self {
@@ -25,15 +33,18 @@ impl Char {
             _ => None,
         }
     }
+    /// is `Char`
     #[inline]
     pub fn is_char(&self) -> bool {
         matches!(self, Char::Char(_, _))
     }
+    /// is `Wrap`
     #[inline]
     pub fn is_wrap(&self) -> bool {
         matches!(self, Char::Wrap(_))
     }
 
+    /// just equivalent to eq, but ignore Loc
     #[inline]
     pub fn char_eq(&self, other: &Self) -> bool {
         match self {
@@ -47,10 +58,13 @@ impl Char {
             Char::Wrap(_) => matches!(other, Char::Wrap(_)),
         }
     }
+    /// just equivalent to ne, but ignore Loc
     #[inline]
     pub fn char_ne(&self, other: &Self) -> bool {
         !self.char_eq(other)
     }
+    /// Get the char  
+    /// when it is Wrap return `'\n'`
     #[inline]
     pub fn c(&self) -> char {
         match self {
@@ -77,6 +91,8 @@ impl Display for Char {
     }
 }
 impl PartialEq<char> for Char {
+    /// Checks if a char is equal to it  
+    /// when it is Wrap check eq to `'\n'`
     fn eq(&self, other: &char) -> bool {
         match self {
             Char::Char(c, _) => *c == *other,
@@ -105,6 +121,7 @@ impl GetChar for Char {
 
 //\/////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// An iterator that produces [`Char`](enum.Char.html)
 #[derive(Debug, Clone, Hash, PartialOrd, Ord, PartialEq, Eq, Default)]
 pub struct CharChars<I: Iterator<Item = char>> {
     iter: I,

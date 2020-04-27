@@ -2,6 +2,10 @@ use std::cell::UnsafeCell;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::ops::{Deref, DerefMut};
 
+/// # **Don't use it**  
+/// This cell is not safe  
+/// external mutable is just a placebo  
+/// when using it, you must ensure safety by yourself  
 #[derive(Debug, Default)]
 pub struct ExtRefCell<T: ?Sized> {
     value: UnsafeCell<T>,
