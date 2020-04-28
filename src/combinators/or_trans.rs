@@ -1,6 +1,7 @@
 use crate::common::cell::*;
 use crate::*;
 use std::marker::PhantomData;
+use std::ops::Range;
 
 /// Pass if subparser pass, otherwise calls f with error point
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -11,7 +12,7 @@ pub struct OrTrans<B: Parser<I>, I: TimeTravel, F> {
 }
 impl<B: Parser<I>, I: TimeTravel, F> OrTrans<B, I, F>
 where
-    F: FnMut(I, usize) -> B::Output,
+    F: FnMut(I, Range<usize>) -> B::Output,
 {
     pub fn new(base: B, f: F) -> Self {
         Self {
@@ -23,7 +24,7 @@ where
 }
 impl<B: Parser<I>, I: TimeTravel, F> Parser<I> for OrTrans<B, I, F>
 where
-    F: FnMut(I, usize) -> B::Output,
+    F: FnMut(I, Range<usize>) -> B::Output,
 {
     type Output = B::Output;
 
@@ -33,8 +34,13 @@ where
         if let None = base {
             let f = unsafe { self.f.get_mut() };
             let now = input.save();
+            let r = if input.is_complete() && from == now {
+                from - 1
+            } else {
+                from
+            }..now;
             input.back(from);
-            Some(f(input.ref_clone(), now))
+            Some(f(input.ref_clone(), r))
         } else {
             base
         }
@@ -50,7 +56,7 @@ mod tests {
         let code = "123qwe";
         let span = code.span();
         let x = substr("1as");
-        let t = x.or_trans(|i: CharSpan, ep| i.save()..ep);
+        let t = x.or_trans(|_: CharSpan, ep| ep);
 
         let r = t.parse(span.ref_clone());
         println!("{:?}", r);

@@ -6,6 +6,8 @@ pub use combinators::*;
 pub use common::*;
 pub use utils::*;
 
+use std::ops::Range;
+
 /// Abstract Parser with chain call
 pub trait Parser<I: TimeTravel> {
     type Output;
@@ -160,7 +162,7 @@ pub trait Parser<I: TimeTravel> {
     fn or_trans<F>(self, f: F) -> OrTrans<Self, I, F>
     where
         Self: Sized,
-        F: FnMut(I, usize) -> Self::Output,
+        F: FnMut(I, Range<usize>) -> Self::Output,
     {
         OrTrans::new(self, f)
     }
@@ -250,10 +252,37 @@ mod test_json {
     #[test]
     fn test_json() {
         let r = json(CODE);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Ok(JsonVal::Object({
+                let mut map = HashMap::new();
+                map.insert("a".to_string(), JsonVal::Number(1.0));
+                map.insert("b".to_string(), JsonVal::Bool(true));
+                map.insert(
+                    "c".to_string(),
+                    JsonVal::Array(vec![
+                        JsonVal::Null,
+                        JsonVal::Number(1.5),
+                        JsonVal::Bool(false),
+                    ]),
+                );
+                map.insert(
+                    "d".to_string(),
+                    JsonVal::Object({
+                        let mut map = HashMap::new();
+                        map.insert("v".to_string(), JsonVal::String("asd".to_string()));
+                        map
+                    }),
+                );
+                map
+            }))
+        )
     }
 
-    pub fn json(code: &str) {
+    pub fn json(code: &str) -> JsonResult {
         let code = code.span();
+        value.parse(code).unwrap()
     }
 
     fn boolval(input: CharSpan) -> Option<JsonVal> {
@@ -340,8 +369,7 @@ mod test_json {
                             }))
                         .map(|v| Result::<char, JsonParserError>::Ok(v))
                         .or_trans(|i: CharSpan, ep| {
-                            let from = i.save();
-                            let loc = i.loc_range(from..ep).unwrap();
+                            let loc = i.loc_range(ep).unwrap();
                             Err(JsonParserError {
                                 loc,
                                 msg: "Illegal escape character".to_string(),
@@ -405,47 +433,42 @@ mod test_json {
             )
             .and(whitespace)
             .map(|((_, v), _)| v)
+            .or_trans(|i: CharSpan, ep| {
+                let loc = i.loc_range(ep).unwrap();
+                Err(JsonParserError {
+                    loc,
+                    msg: "Invaild character".to_string(),
+                })
+            })
             .parse(input)
     }
 
     fn array(input: CharSpan) -> Option<JsonResult> {
         one('[')
-            .and(
+            .and({
                 value
-                    .and(
-                        one(',')
-                            .and(value)
-                            .map(|v| Ok(v))
-                            .or_trans(|i, ep| {
-                                let from = i.save();
-                                let loc = i.loc_range(from..ep).unwrap();
-                                Err(JsonParserError {
-                                    loc,
-                                    msg: "Need \",\" but not found it".to_string(),
-                                })
-                            })
-                            .many(),
-                    )
+                    .and(one(',').and(value).many())
                     .map(|(f, v)| {
                         let mut vals: Vec<JsonVal> = vec![f?];
                         for vv in v {
-                            let (_, val) = vv?;
+                            let (_, val) = vv;
                             vals.push(val?);
                         }
                         Ok(vals)
                     })
-                    .or(whitespace.map(|v| Ok(vec![]))),
-            )
+                    .or(whitespace.map(|v| Ok(vec![])))
+            })
             .and(one(']').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
-                let from = i.save();
-                let loc = i.loc_range(from..ep).unwrap();
+                let loc = i.loc_range(ep);
+                let loc = loc.unwrap();
                 Err(JsonParserError {
                     loc,
                     msg: "Need \"]\" but not found it".to_string(),
                 })
             }))
             .map(
-                |((_, v), _): ((Range<usize>, JsonResults<Vec<JsonVal>>), JsonResults<()>)| {
+                |((_, v), e): ((_, JsonResults<Vec<JsonVal>>), JsonResults<()>)| {
+                    e?;
                     let v = v?;
                     Ok(JsonVal::Array(v))
                 },
@@ -454,7 +477,62 @@ mod test_json {
     }
 
     fn object(input: CharSpan) -> Option<JsonResult> {
-        todo!()
+        fn kv(input: CharSpan) -> Option<JsonResults<(String, JsonVal)>> {
+            whitespace
+                .and(stringval)
+                .and(whitespace)
+                .and(one(':').map(|v| Ok(v)).or_trans(|i: CharSpan, ep| {
+                    let loc = i.loc_range(ep).unwrap();
+                    Err(JsonParserError {
+                        loc,
+                        msg: "Need \":\" but not found it".to_string(),
+                    })
+                }))
+                .and(value)
+                .map(|((((_, k), _), col), v)| {
+                    let k = k?;
+                    let _ = col?;
+                    let v = v?;
+                    let key = if let JsonVal::String(key) = k {
+                        key
+                    } else {
+                        panic!("never")
+                    };
+                    Ok((key, v))
+                })
+                .parse(input)
+        }
+        one('{')
+            .and({
+                kv.and({ one(',').and(kv).many() })
+                    .map(|(f, vs)| {
+                        let mut vals: HashMap<String, JsonVal> = HashMap::new();
+                        let (k, v) = f?;
+                        vals.insert(k, v);
+                        for vv in vs {
+                            let (_, val) = vv;
+                            let (k, v) = val?;
+                            vals.insert(k, v);
+                        }
+                        Ok(vals)
+                    })
+                    .or(whitespace.map(|v| Ok(HashMap::new())))
+            })
+            .and(one('}').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+                let loc = i.loc_range(ep).unwrap();
+                Err(JsonParserError {
+                    loc,
+                    msg: "Need \"}\" but not found it".to_string(),
+                })
+            }))
+            .map(
+                |((_, v), e): ((_, JsonResults<HashMap<String, JsonVal>>), JsonResults<()>)| {
+                    e?;
+                    let v = v?;
+                    Ok(JsonVal::Object(v))
+                },
+            )
+            .parse(input)
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -622,5 +700,104 @@ mod test_json {
         let r = stringval.parse(code);
         println!("{:?}", r);
         assert_eq!(r, None)
+    }
+
+    #[test]
+    fn test_array() {
+        let code = "[ 1, 2, 3 ]".span();
+        let r = array.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Ok(JsonVal::Array(vec![
+                JsonVal::Number(1.0),
+                JsonVal::Number(2.0),
+                JsonVal::Number(3.0)
+            ])))
+        )
+    }
+
+    #[test]
+    fn test_array2() {
+        let code = "[ 1, 2 3 ]".span();
+        let r = array.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Err(JsonParserError {
+                loc: (7, 0, 7).into(),
+                msg: "Need \"]\" but not found it".to_string()
+            }))
+        )
+    }
+
+    #[test]
+    fn test_array3() {
+        let code = "[ 1, 2 ".span();
+        let r = array.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Err(JsonParserError {
+                loc: (6, 0, 6).into(),
+                msg: "Need \"]\" but not found it".to_string()
+            }))
+        )
+    }
+
+    #[test]
+    fn test_object() {
+        let code = "{ \"a\" : 1 }".span();
+        let r = object.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Ok(JsonVal::Object({
+                let mut map = HashMap::new();
+                map.insert("a".to_string(), JsonVal::Number(1.0));
+                map
+            })))
+        )
+    }
+
+    #[test]
+    fn test_object2() {
+        let code = "{ \"a\" 1 }".span();
+        let r = object.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Err(JsonParserError {
+                loc: (6, 0, 6).into(),
+                msg: "Need \":\" but not found it".to_string()
+            }))
+        )
+    }
+
+    #[test]
+    fn test_object3() {
+        let code = "{ \"a\" : 1 2 }".span();
+        let r = object.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Err(JsonParserError {
+                loc: (10, 0, 10).into(),
+                msg: "Need \"}\" but not found it".to_string()
+            }))
+        )
+    }
+    #[test]
+    fn test_object4() {
+        let code = "{ \"a\" : 1 ".span();
+        let r = object.parse(code);
+        println!("{:?}", r);
+        assert_eq!(
+            r,
+            Some(Err(JsonParserError {
+                loc: (9, 0, 9).into(),
+                msg: "Need \"}\" but not found it".to_string()
+            }))
+        )
     }
 }

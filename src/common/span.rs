@@ -167,9 +167,12 @@ where
     fn loc_range(&self, range: Range<usize>) -> Option<LocRange> {
         let this = unsafe { (*self.inner).get_mut() };
         let Range { start, end } = range;
-        if end > this.timeline.now_len() {
+        let now_len = this.timeline.now_len();
+        if end > now_len {
+            debug_assert!(end > now_len);
             None
         } else {
+            debug_assert!(end <= now_len);
             let s = this.timeline.get(start)?.clone();
             let e = this.timeline.get(end - 1)?.clone();
             let loc_range = LocRange::new(s.loc(), e.loc());
