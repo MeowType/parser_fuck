@@ -339,15 +339,13 @@ mod test_json {
                                 c
                             }))
                         .map(|v| Result::<char, JsonParserError>::Ok(v))
-                        .or_else(|| {
-                            |i: CharSpan| {
-                                let from = i.save();
-                                let loc = i.loc_range(from..from + 1).unwrap();
-                                Some(Err(JsonParserError {
-                                    loc,
-                                    msg: "Illegal escape character".to_string(),
-                                }))
-                            }
+                        .or_trans(|i: CharSpan, ep| {
+                            let from = i.save();
+                            let loc = i.loc_range(from..ep).unwrap();
+                            Err(JsonParserError {
+                                loc,
+                                msg: "Illegal escape character".to_string(),
+                            })
                         })
                 })
                 .map(|(_, v)| v)
@@ -418,15 +416,13 @@ mod test_json {
                         one(',')
                             .and(value)
                             .map(|v| Ok(v))
-                            .or_else(|| {
-                                |i: CharSpan| {
-                                    let from = i.save();
-                                    let loc = i.loc_range(from..from + 1).unwrap();
-                                    Some(Err(JsonParserError {
-                                        loc,
-                                        msg: "Need \",\" but not found it".to_string(),
-                                    }))
-                                }
+                            .or_trans(|i, ep| {
+                                let from = i.save();
+                                let loc = i.loc_range(from..ep).unwrap();
+                                Err(JsonParserError {
+                                    loc,
+                                    msg: "Need \",\" but not found it".to_string(),
+                                })
                             })
                             .many(),
                     )
@@ -440,15 +436,13 @@ mod test_json {
                     })
                     .or(whitespace.map(|v| Ok(vec![]))),
             )
-            .and(one(']').map(|_| Ok(())).or_else(|| {
-                |i: CharSpan| {
-                    let from = i.save();
-                    let loc = i.loc_range(from..from + 1).unwrap();
-                    Some(Err(JsonParserError {
-                        loc,
-                        msg: "Need \"]\" but not found it".to_string(),
-                    }))
-                }
+            .and(one(']').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+                let from = i.save();
+                let loc = i.loc_range(from..ep).unwrap();
+                Err(JsonParserError {
+                    loc,
+                    msg: "Need \"]\" but not found it".to_string(),
+                })
             }))
             .map(
                 |((_, v), _): ((Range<usize>, JsonResults<Vec<JsonVal>>), JsonResults<()>)| {
