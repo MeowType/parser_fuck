@@ -1,5 +1,8 @@
 # parser_fuck
-![Rust](https://github.com/MeowType/parser_fuck/workflows/Rust/badge.svg)  
+![GitHub](https://img.shields.io/github/license/MeowType/parser_fuck?color=brightgreen)
+![Rust](https://github.com/MeowType/parser_fuck/workflows/Rust/badge.svg)
+![Crates.io](https://img.shields.io/crates/v/parser_fuck)
+
 A simple parser combinator library
 
 ## example
