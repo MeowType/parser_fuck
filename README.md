@@ -1,4 +1,5 @@
 # parser_fuck
+![Rust](https://github.com/MeowType/parser_fuck/workflows/Rust/badge.svg)  
 A simple parser combinator library
 
 ## example
