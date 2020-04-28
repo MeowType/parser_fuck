@@ -1,0 +1,59 @@
+use crate::common::cell::*;
+use crate::*;
+use std::marker::PhantomData;
+
+/// Pass if subparser pass, otherwise calls f with error point
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub struct OrTrans<B: Parser<I>, I: TimeTravel, F> {
+    base: B,
+    f: ExtRefCell<F>,
+    _i: PhantomData<I>,
+}
+impl<B: Parser<I>, I: TimeTravel, F> OrTrans<B, I, F>
+where
+    F: FnMut(I, usize) -> B::Output,
+{
+    pub fn new(base: B, f: F) -> Self {
+        Self {
+            base,
+            f: ExtRefCell::new(f),
+            _i: PhantomData,
+        }
+    }
+}
+impl<B: Parser<I>, I: TimeTravel, F> Parser<I> for OrTrans<B, I, F>
+where
+    F: FnMut(I, usize) -> B::Output,
+{
+    type Output = B::Output;
+
+    fn parse(&self, mut input: I) -> Option<Self::Output> {
+        let from = input.save();
+        let base = self.base.parse(input.ref_clone());
+        if let None = base {
+            let f = unsafe { self.f.get_mut() };
+            let now = input.save();
+            input.back(from);
+            Some(f(input.ref_clone(), now))
+        } else {
+            base
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn test() {
+        let code = "123qwe";
+        let span = code.span();
+        let x = substr("1as");
+        let t = x.or_trans(|i: CharSpan, ep| i.save()..ep);
+
+        let r = t.parse(span.ref_clone());
+        println!("{:?}", r);
+        assert_eq!(r, Some(0..2))
+    }
+}
