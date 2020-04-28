@@ -1,8 +1,3 @@
-# parser_fuck
-A simple parser combinator library
-
-## example
-```rust
 use parser_fuck::*;
 use std::collections::HashMap;
 use std::f64;
@@ -311,5 +306,3 @@ pub enum JsonVal {
     Bool(bool),
     Null,
 }
-
-```
