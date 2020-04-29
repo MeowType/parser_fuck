@@ -34,7 +34,7 @@ where
         if let None = base {
             let f = unsafe { self.f.get_mut() };
             let now = input.save();
-            let r = if input.is_complete() && from == now {
+            let r = if input.is_complete() && from == now && now != 0 {
                 from - 1
             } else {
                 from
@@ -61,5 +61,17 @@ mod tests {
         let r = t.parse(span.ref_clone());
         println!("{:?}", r);
         assert_eq!(r, Some(0..2))
+    }
+
+    #[test]
+    fn test_empty() {
+        let code = "";
+        let span = code.span();
+        let x = substr("asd");
+        let t = x.or_trans(|_: CharSpan, ep| ep);
+
+        let r = t.parse(span.ref_clone());
+        println!("{:?}", r);
+        assert_eq!(r, Some(0..0))
     }
 }
