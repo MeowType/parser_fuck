@@ -82,13 +82,13 @@ mod tests {
 
     #[test]
     fn test_noend() {
-        let code = "asd";
+        let code = "as";
         let span = code.span();
         let x = substr("asd");
-        let t = x.or_trans(|_: CharSpan, ep| ep);
+        let t = x.or_trans_noend(|_: CharSpan, ep| ep);
 
         let r = t.parse(span.ref_clone());
         println!("{:?}", r);
-        assert_eq!(r, Some(0..3))
+        assert_eq!(r, None)
     }
 }
