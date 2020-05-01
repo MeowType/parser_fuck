@@ -481,6 +481,7 @@ pub trait Parser<I: TimeTravel> {
     {
         OrTrans::new(self, false, f)
     }
+    /// Pass if subparser pass, otherwise calls f with error point, but ignore EOF
     #[inline]
     fn or_trans_noend<F>(self, f: F) -> OrTrans<Self, I, F>
     where
