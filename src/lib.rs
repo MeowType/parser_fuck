@@ -479,7 +479,15 @@ pub trait Parser<I: TimeTravel> {
         Self: Sized,
         F: FnMut(I, Range<usize>) -> Self::Output,
     {
-        OrTrans::new(self, f)
+        OrTrans::new(self, false, f)
+    }
+    #[inline]
+    fn or_trans_noend<F>(self, f: F) -> OrTrans<Self, I, F>
+    where
+        Self: Sized,
+        F: FnMut(I, Range<usize>) -> Self::Output,
+    {
+        OrTrans::new(self, true, f)
     }
 
     /// Wrap to dynamic
