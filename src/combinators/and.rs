@@ -37,9 +37,58 @@ where
     }
 }
 
+#[macro_export]
+#[doc(hidden)]
+macro_rules! _and {
+    { $(,)? $($r:ident),* } => { ($($r),*) };
+    { $input:ident ; $a: expr, $b: expr ; $(,)? $($r:ident),* } => {
+        $a.parse($input.ref_clone()).and_then(|a| {
+            $input.re_ready();
+            $b.parse($input).map(|b| _and!($($r),*, a, b))
+        })
+    };
+    { $input:ident ; $a: expr, $($b: expr),+ ; $(,)? $($r:ident),* } => {
+        $a.parse($input.ref_clone()).and_then(|a| {
+            $input.re_ready();
+            _and!($input ; $($b),+ ; $($r),* , a )
+        })
+    };
+}
+/// Only pass if all subparsers pass
+/// # Example
+/// ```rust
+/// # use parser_fuck::*;
+/// let code = "asd".span();
+/// let r = and!(code; one('a'), one('s'), one('d'));
+/// assert_eq!(r, Some((0..1, 1..2, 2..3)));
+/// ```
+#[macro_export(local_inner_macros)]
+macro_rules! and {
+    { } => {{ }};
+    { $input:expr } => {{ }};
+    { $input:expr ; } => {{ }};
+    { $input:expr ; $a:expr } => {{
+        $a.parse($input)
+    }};
+    { $input:expr ; $a: expr, $($b: expr),+ } => {{
+        let mut input = $input;
+        _and!(input ; $a, $($b),+ ;)
+    }};
+}
+
 #[cfg(test)]
 mod tests {
     use crate::*;
+
+    #[test]
+    fn test_macro() {
+        let code = "asd";
+        let span = code.span();
+
+        let r = and!(span; one('a'), one('s'), one('d'));
+        println!("{:?}", r);
+        assert_eq!(r, Some((0..1, 1..2, 2..3)))
+    }
 
     #[test]
     fn test() {

@@ -107,3 +107,76 @@ pub fn range_of_optrange_optrange(
     let end = if b.is_some() { b } else { a }.map(|v| v.end)?;
     Some(start..end)
 }
+
+/// try but no return
+/// # Example
+/// ```rust
+/// # use parser_fuck::*;
+/// let a = Some(1);
+/// let r = try_do!(a; Some(v) {
+///     Some(v + 1)
+/// });
+/// assert_eq!(r, Some(2));
+/// ```
+/// ```rust
+/// # use parser_fuck::*;
+/// let a: Result<i32, ()> = Ok(1);
+/// let r = try_do!(a; Ok(v) {
+///     Ok(v + 1)
+/// });
+/// assert_eq!(r, Ok(2));
+/// ```
+#[macro_export(local_inner_macros)]
+macro_rules! try_do {
+    { $v:expr ; Some($n:ident) $b:block } => {
+        match $v {
+            Some($n) => $b
+            None => None
+        }
+    };
+    { $v:expr ; Ok($n:ident) $b:block } => {
+        match $v {
+            Ok($n) => $b
+            Err(err) => Err(err)
+        }
+    };
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_try_do_some() {
+        let a = Some(1);
+        let r = try_do!(a; Some(v) {
+            Some(v + 1)
+        });
+        assert_eq!(r, Some(2));
+    }
+    #[test]
+    fn test_try_do_none() {
+        let a: Option<i32> = None;
+        let r = try_do!(a; Some(v) {
+            Some(v + 1)
+        });
+        assert_eq!(r, None);
+    }
+
+    #[test]
+    fn test_try_do_ok() {
+        let a: Result<i32, ()> = Ok(1);
+        let r = try_do!(a; Ok(v) {
+            Ok(v + 1)
+        });
+        assert_eq!(r, Ok(2));
+    }
+
+    #[test]
+    fn test_try_do_err() {
+        let a: Result<i32, ()> = Err(());
+        let r = try_do!(a; Ok(v) {
+            Ok(v + 1)
+        });
+        assert_eq!(r, Err(()));
+    }
+}
