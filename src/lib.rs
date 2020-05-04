@@ -1,15 +1,15 @@
 //! A simple parser combinator library
-//! 
+//!
 //! ## example
 //! ```rust
 //! use parser_fuck::*;
 //! use std::collections::HashMap;
 //! use std::f64;
 //! use std::ops::Range;
-//! 
+//!
 //! static CODE: &'static str =
 //!     "{ \"a\": 1, \"b\": true, \"c\": [null, 1.5, false], \"d\": { \"v\": \"asd\" } }";
-//! 
+//!
 //! fn main() {
 //!     let r = json(CODE);
 //!     println!("{:?}", r);
@@ -39,23 +39,23 @@
 //!         }))
 //!     )
 //! }
-//! 
+//!
 //! pub fn json(code: &str) -> JsonResult {
 //!     let code = code.span();
 //!     value.parse(code).unwrap()
 //! }
-//! 
+//!
 //! fn boolval(input: CharSpan) -> Option<JsonVal> {
 //!     substr("true")
 //!         .map(|_| JsonVal::Bool(true))
 //!         .or(substr("false").map(|_| JsonVal::Bool(false)))
 //!         .parse(input)
 //! }
-//! 
+//!
 //! fn nullval(input: CharSpan) -> Option<JsonVal> {
 //!     substr("null").map(|_| JsonVal::Null).parse(input)
 //! }
-//! 
+//!
 //! fn numberval(input: CharSpan) -> Option<JsonVal> {
 //!     fn num_start(input: CharSpan) -> Option<Range<usize>> {
 //!         satisfy(|c: Char| {
@@ -100,7 +100,7 @@
 //!         })
 //!         .parse(input.ref_clone())
 //! }
-//! 
+//!
 //! fn stringval(input: CharSpan) -> Option<JsonResult> {
 //!     fn str_esc(input: CharSpan) -> Option<Result<char, JsonParserError>> {
 //!         one('\\')
@@ -126,7 +126,7 @@
 //!                             c
 //!                         }))
 //!                     .map(|v| Result::<char, JsonParserError>::Ok(v))
-//!                     .or_trans(|i: CharSpan, ep| {
+//!                     .or_trans(true,|i: CharSpan, ep| {
 //!                         let loc = i.loc_range(ep).unwrap();
 //!                         Err(JsonParserError {
 //!                             loc,
@@ -173,14 +173,14 @@
 //!         )
 //!         .parse(input.ref_clone())
 //! }
-//! 
+//!
 //! fn whitespace(input: CharSpan) -> Option<()> {
 //!     satisfy(|c: Char| c.is_wrap() || c == ' ' || c == '\t')
 //!         .many()
 //!         .map(|_| {})
 //!         .parse(input)
 //! }
-//! 
+//!
 //! fn value(input: CharSpan) -> Option<JsonResult> {
 //!     whitespace
 //!         .and(
@@ -191,7 +191,7 @@
 //!         )
 //!         .and(whitespace)
 //!         .map(|((_, v), _)| v)
-//!         .or_trans(|i: CharSpan, ep| {
+//!         .or_trans(true,|i: CharSpan, ep| {
 //!             let loc = i.loc_range(ep).unwrap();
 //!             Err(JsonParserError {
 //!                 loc,
@@ -200,7 +200,7 @@
 //!         })
 //!         .parse(input)
 //! }
-//! 
+//!
 //! fn array(input: CharSpan) -> Option<JsonResult> {
 //!     one('[')
 //!         .and({
@@ -216,7 +216,7 @@
 //!                 })
 //!                 .or(whitespace.map(|_| Ok(vec![])))
 //!         })
-//!         .and(one(']').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+//!         .and(one(']').map(|_| Ok(())).or_trans(true,|i: CharSpan, ep| {
 //!             let loc = i.loc_range(ep);
 //!             let loc = loc.unwrap();
 //!             Err(JsonParserError {
@@ -233,13 +233,13 @@
 //!         )
 //!         .parse(input)
 //! }
-//! 
+//!
 //! fn object(input: CharSpan) -> Option<JsonResult> {
 //!     fn kv(input: CharSpan) -> Option<JsonResults<(String, JsonVal)>> {
 //!         whitespace
 //!             .and(stringval)
 //!             .and(whitespace)
-//!             .and(one(':').map(|v| Ok(v)).or_trans(|i: CharSpan, ep| {
+//!             .and(one(':').map(|v| Ok(v)).or_trans(true,|i: CharSpan, ep| {
 //!                 let loc = i.loc_range(ep).unwrap();
 //!                 Err(JsonParserError {
 //!                     loc,
@@ -276,7 +276,7 @@
 //!                 })
 //!                 .or(whitespace.map(|_| Ok(HashMap::new())))
 //!         })
-//!         .and(one('}').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+//!         .and(one('}').map(|_| Ok(())).or_trans(true,|i: CharSpan, ep| {
 //!             let loc = i.loc_range(ep).unwrap();
 //!             Err(JsonParserError {
 //!                 loc,
@@ -292,7 +292,7 @@
 //!         )
 //!         .parse(input)
 //! }
-//! 
+//!
 //! #[derive(Debug, Clone, PartialEq, Eq)]
 //! pub struct JsonParserError {
 //!     pub loc: LocRange,
@@ -300,7 +300,7 @@
 //! }
 //! pub type JsonResults<T> = Result<T, JsonParserError>;
 //! pub type JsonResult = Result<JsonVal, JsonParserError>;
-//! 
+//!
 //! #[derive(Debug, Clone, PartialEq)]
 //! pub enum JsonVal {
 //!     String(String),
@@ -310,7 +310,7 @@
 //!     Bool(bool),
 //!     Null,
 //! }
-//! 
+//!
 //! ```
 
 pub mod combinators;
@@ -474,21 +474,21 @@ pub trait Parser<I: TimeTravel> {
 
     /// Pass if subparser pass, otherwise calls f with error point
     #[inline]
-    fn or_trans<F>(self, f: F) -> OrTrans<Self, I, F>
+    fn or_trans<F>(self, no_retry: bool, f: F) -> OrTrans<Self, I, F>
     where
         Self: Sized,
         F: FnMut(I, Range<usize>) -> Self::Output,
     {
-        OrTrans::new(self, false, f)
+        OrTrans::new(self, false, no_retry, f)
     }
     /// Pass if subparser pass, otherwise calls f with error point, but ignore EOF
     #[inline]
-    fn or_trans_noend<F>(self, f: F) -> OrTrans<Self, I, F>
+    fn or_trans_noend<F>(self, no_retry: bool, f: F) -> OrTrans<Self, I, F>
     where
         Self: Sized,
         F: FnMut(I, Range<usize>) -> Self::Output,
     {
-        OrTrans::new(self, true, f)
+        OrTrans::new(self, true, no_retry, f)
     }
 
     /// Wrap to dynamic
@@ -689,7 +689,7 @@ mod test_json {
                                 c
                             }))
                         .map(|v| Result::<char, JsonParserError>::Ok(v))
-                        .or_trans(|i: CharSpan, ep| {
+                        .or_trans(true,|i: CharSpan, ep| {
                             let loc = i.loc_range(ep).unwrap();
                             Err(JsonParserError {
                                 loc,
@@ -754,7 +754,7 @@ mod test_json {
             )
             .and(whitespace)
             .map(|((_, v), _)| v)
-            .or_trans(|i: CharSpan, ep| {
+            .or_trans(true, |i: CharSpan, ep| {
                 let loc = i.loc_range(ep).unwrap();
                 Err(JsonParserError {
                     loc,
@@ -779,7 +779,7 @@ mod test_json {
                     })
                     .or(whitespace.map(|_| Ok(vec![])))
             })
-            .and(one(']').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+            .and(one(']').map(|_| Ok(())).or_trans(true,|i: CharSpan, ep| {
                 let loc = i.loc_range(ep);
                 let loc = loc.unwrap();
                 Err(JsonParserError {
@@ -802,7 +802,7 @@ mod test_json {
             whitespace
                 .and(stringval)
                 .and(whitespace)
-                .and(one(':').map(|v| Ok(v)).or_trans(|i: CharSpan, ep| {
+                .and(one(':').map(|v| Ok(v)).or_trans(true,|i: CharSpan, ep| {
                     let loc = i.loc_range(ep).unwrap();
                     Err(JsonParserError {
                         loc,
@@ -839,7 +839,7 @@ mod test_json {
                     })
                     .or(whitespace.map(|_| Ok(HashMap::new())))
             })
-            .and(one('}').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+            .and(one('}').map(|_| Ok(())).or_trans(true,|i: CharSpan, ep| {
                 let loc = i.loc_range(ep).unwrap();
                 Err(JsonParserError {
                     loc,

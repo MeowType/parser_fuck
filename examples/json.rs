@@ -122,7 +122,7 @@ fn stringval(input: CharSpan) -> Option<JsonResult> {
                             c
                         }))
                     .map(|v| Result::<char, JsonParserError>::Ok(v))
-                    .or_trans(|i: CharSpan, ep| {
+                    .or_trans(true, |i: CharSpan, ep| {
                         let loc = i.loc_range(ep).unwrap();
                         Err(JsonParserError {
                             loc,
@@ -187,7 +187,7 @@ fn value(input: CharSpan) -> Option<JsonResult> {
         )
         .and(whitespace)
         .map(|((_, v), _)| v)
-        .or_trans(|i: CharSpan, ep| {
+        .or_trans(true, |i: CharSpan, ep| {
             let loc = i.loc_range(ep).unwrap();
             Err(JsonParserError {
                 loc,
@@ -212,7 +212,7 @@ fn array(input: CharSpan) -> Option<JsonResult> {
                 })
                 .or(whitespace.map(|_| Ok(vec![])))
         })
-        .and(one(']').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+        .and(one(']').map(|_| Ok(())).or_trans(true, |i: CharSpan, ep| {
             let loc = i.loc_range(ep);
             let loc = loc.unwrap();
             Err(JsonParserError {
@@ -235,7 +235,7 @@ fn object(input: CharSpan) -> Option<JsonResult> {
         whitespace
             .and(stringval)
             .and(whitespace)
-            .and(one(':').map(|v| Ok(v)).or_trans(|i: CharSpan, ep| {
+            .and(one(':').map(|v| Ok(v)).or_trans(true, |i: CharSpan, ep| {
                 let loc = i.loc_range(ep).unwrap();
                 Err(JsonParserError {
                     loc,
@@ -272,7 +272,7 @@ fn object(input: CharSpan) -> Option<JsonResult> {
                 })
                 .or(whitespace.map(|_| Ok(HashMap::new())))
         })
-        .and(one('}').map(|_| Ok(())).or_trans(|i: CharSpan, ep| {
+        .and(one('}').map(|_| Ok(())).or_trans(true, |i: CharSpan, ep| {
             let loc = i.loc_range(ep).unwrap();
             Err(JsonParserError {
                 loc,
