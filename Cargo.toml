@@ -1,6 +1,6 @@
 [package]
 name = "parser_fuck"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Package <Aditrc@outlook.com>"]
 edition = "2018"
 description = "A simple parser combinator library"

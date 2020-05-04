@@ -4,6 +4,8 @@ use std::marker::PhantomData;
 use std::ops::Range;
 
 /// Pass if subparser pass, otherwise calls f with error point
+/// - `no_eof` Ignore EOF
+/// - `no_retry` Stop immediately without trying to get the error range
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct OrTrans<B: Parser<I>, I: TimeTravel, F> {
     base: B,
