@@ -69,10 +69,10 @@ macro_rules! or {
     { } => {{ }};
     { $input:expr } => {{ }};
     { $input:expr ; } => {{ }};
-    { $input:expr ; $a:expr } => {{
+    { $input:expr ; $a:expr $(,)? } => {{
         $a.parse($input)
     }};
-    { $input:expr ; $a:expr, $($b: expr),+ } => {{
+    { $input:expr ; $a:expr, $($b: expr),+ $(,)? } => {{
         let mut input = $input;
         let from = input.save();
         _or!(input, from ; $a, $($b),+)

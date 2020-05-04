@@ -67,10 +67,10 @@ macro_rules! and {
     { } => {{ }};
     { $input:expr } => {{ }};
     { $input:expr ; } => {{ }};
-    { $input:expr ; $a:expr } => {{
+    { $input:expr ; $a:expr $(,)? } => {{
         $a.parse($input)
     }};
-    { $input:expr ; $a: expr, $($b: expr),+ } => {{
+    { $input:expr ; $a: expr, $($b: expr),+ $(,)? } => {{
         let mut input = $input;
         _and!(input ; $a, $($b),+ ;)
     }};
