@@ -37,6 +37,20 @@ fn test_json() {
     )
 }
 
+#[test]
+fn test_bench() {
+    use easybench::bench;
+    use serde_json::Value;
+
+    println!("this: {}", bench(|| {
+        json(CODE)
+    }));
+
+    println!("serde: {}", bench(|| {
+        serde_json::from_str::<Value>(CODE)
+    }));
+}
+
 pub fn json(code: &str) -> JsonResult {
     let code = code.span();
     value.parse(code).unwrap()
