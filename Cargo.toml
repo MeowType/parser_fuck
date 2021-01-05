@@ -13,6 +13,6 @@ categories = ["parsing"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-batch_oper = "1.9.0"
+batch_oper = "2.3.1"
 serde = "1.0.114"
 uuid = { version = "0.8", features = ["serde", "v4"] }
