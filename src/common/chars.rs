@@ -1,5 +1,5 @@
 use super::*;
-use batch_oper::effect;
+use libsugar::Also;
 use serde::{Deserialize, Serialize};
 use std::convert::From;
 use std::fmt;
@@ -164,7 +164,7 @@ impl<I: Iterator<Item = char>> Iterator for CharChars<I> {
                 if let Some(l) = self.isr {
                     if c == '\n' {
                         self.isr = None;
-                        return effect(Some(Char::Wrap(l)), |_| {
+                        return Some(Char::Wrap(l)).also(|_| {
                             self.loc.offset += 1;
                         });
                     } else {
@@ -189,13 +189,13 @@ impl<I: Iterator<Item = char>> Iterator for CharChars<I> {
                         self.loc.char = 0;
                         self.loc.line += 1;
                     } else if c == '\n' {
-                        return effect(Some(Char::Wrap(self.loc)), |_| {
+                        return Some(Char::Wrap(self.loc)).also(|_| {
                             self.loc.offset += 1;
                             self.loc.char = 0;
                             self.loc.line += 1;
                         });
                     } else {
-                        return effect(Some(Char::Char(c, self.loc)), |_| {
+                        return Some(Char::Char(c, self.loc)).also(|_| {
                             self.loc.offset += 1;
                             self.loc.char += 1;
                         });

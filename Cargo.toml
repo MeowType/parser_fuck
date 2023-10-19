@@ -1,22 +1,22 @@
 [package]
-name = "parser_fuck"
-version = "0.5.0"
 authors = ["Package <Aditrc@outlook.com>"]
-edition = "2018"
+categories = ["parsing"]
 description = "A simple parser combinator library"
+edition = "2018"
+keywords = ["parser-combinators", "parser", "combinator", "parsing", "parser"]
+license = "MIT"
+name = "parser_fuck"
 readme = "README.md"
 repository = "https://github.com/MeowType/parser_fuck"
-license = "MIT"
-keywords = ["parser-combinators", "parser", "combinator", "parsing", "parser"]
-categories = ["parsing"]
+version = "0.6.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-batch_oper = "1.2.0"
-serde = "1.0.0"
-uuid = { version = "0.8", features = ["serde", "v4"] }
+libsugar = "2.4"
+serde = {version = "1", features = ["derive"]}
+uuid = {version = "1.5", features = ["serde", "v4"]}
 
 [dev-dependencies]
 easybench = "1"
-serde_json = "1.0.53"
+serde_json = "1"

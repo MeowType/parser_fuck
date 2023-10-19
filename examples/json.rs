@@ -258,7 +258,7 @@ fn object(input: CharSpan) -> Option<JsonResult> {
     }
     one('{')
         .and({
-            kv.and({ one(',').and(kv).many() })
+            kv.and(one(',').and(kv).many())
                 .map(|(f, vs)| {
                     let mut vals: HashMap<String, JsonVal> = HashMap::new();
                     let (k, v) = f?;
